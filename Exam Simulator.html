@@ -1,0 +1,1095 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ExamPro | Workspace</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- MathJax Configuration -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                packages: {'[+]': ['mhchem']},
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Tailwind Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#191A1F",
+                        "on-primary": "#ffffff",
+                        "surface": "#ffffff",
+                        "surface-container": "#f9f9f9",
+                        "surface-container-low": "#f3f3f3",
+                        "surface-container-high": "#e8e8e8",
+                        "on-surface": "#1a1c1c",
+                        "on-surface-variant": "#46464b",
+                        "outline": "#77767b",
+                        "success": "#22C55E",
+                        "review": "#A855F7",
+                        "not-answered": "#EF4444"
+                    },
+                    fontFamily: {
+                        "body": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary: #191A1F;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9f9;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        /* Scrollbars */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D1D1D1; border-radius: 10px; }
+
+        /* Palette States */
+        .q-not-visited { background: #FFFFFF; border: 1px solid #E5E7EB; color: #9CA3AF; }
+        .q-not-answered { background: #FEF2F2; border: 1px solid #FEE2E2; color: #EF4444; }
+        .q-answered { background: #22C55E; color: #FFFFFF; border: 1px solid #22C55E; }
+        .q-review { background: #A855F7; color: #FFFFFF; border: 1px solid #A855F7; }
+        .q-current { border: 2px solid var(--primary) !important; color: var(--primary) !important; font-weight: 800; }
+
+        /* Option Cards */
+        .option-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .option-card.active { border-color: var(--primary); background-color: #F9FAFB; box-shadow: 0 0 0 1px var(--primary); }
+        .option-card input[type="radio"] {
+            appearance: none; width: 20px; height: 20px;
+            border: 2px solid #D1D5DB; border-radius: 50%;
+            margin-right: 1.25rem; position: relative; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .option-card input[type="radio"]:checked { border-color: var(--primary); border-width: 6px; }
+
+        .glass-nav { background-color: rgba(249, 249, 249, 0.8); backdrop-filter: blur(24px); }
+        
+        /* Visual Tables */
+        .visual-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .visual-table td { border: 1px solid #d1d5db; padding: 10px; text-align: left; }
+        .visual-table tr:first-child td { font-weight: bold; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="text-on-surface antialiased h-screen overflow-hidden flex flex-col">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: CONVERTER VIEW                     -->
+    <!-- ========================================== -->
+    <div id="converter-view" class="w-full h-full overflow-y-auto flex flex-col" style="display: none;">
+        <nav class="w-full sticky top-0 z-50 glass-nav border-b border-gray-200 shrink-0">
+            <div class="flex justify-between items-center px-8 h-16 w-full max-w-full">
+                <div class="flex items-center gap-8">
+                    <span class="text-xl font-bold tracking-tight text-primary">ExamPro</span>
+                    <div class="hidden md:flex items-center space-x-6">
+                        <span class="text-primary font-medium">Exam Converter</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-6xl mx-auto px-8 py-12 flex-1 w-full">
+            <header class="mb-12">
+                <span class="text-[0.75rem] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">Utility</span>
+                <h1 class="text-4xl font-extrabold tracking-tight text-on-surface leading-tight">Exam Converter</h1>
+                <p class="text-on-surface-variant mt-2 text-md max-w-2xl">Paste structured raw text (Passages, Visuals, Questions, Options). The parser will automatically build your exam environment.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Paste Area -->
+                <div class="lg:col-span-2 space-y-3">
+                    <div class="flex justify-between items-end">
+                        <label class="text-[0.75rem] font-bold uppercase tracking-widest text-on-surface-variant">Paste Exam Text</label>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 focus-within:border-primary transition-all duration-300 shadow-sm overflow-hidden h-[500px]">
+                        <textarea id="inputText" class="w-full h-full p-6 bg-transparent border-none focus:ring-0 text-gray-800 placeholder-gray-400 resize-none font-body leading-relaxed custom-scrollbar" placeholder="[DIRECTIONS: 1-5] Choose the best answer. [/DIRECTIONS]
+
+[PASSAGE: 1-5] This is a sample passage... [/PASSAGE]
+
+[VISUAL: 1-5]
+Header 1 | Header 2
+Data 1 | Data 2
+[/VISUAL]
+
+1. What is the main idea?
+A. Option 1
+B. Option 2
+C. Option 3
+D. Option 4"></textarea>
+                    </div>
+                </div>
+
+                <!-- Config -->
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
+                        <div>
+                            <label class="text-[0.75rem] font-bold uppercase tracking-widest text-on-surface-variant block mb-3">Set Exam Time</label>
+                            <div class="relative">
+                                <input type="number" id="examTime" value="60" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 pr-12 text-xl font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all"/>
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">MIN</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-4">
+                        <button onclick="generateAndStart()" class="w-full bg-primary text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-black/90 transition-all active:scale-[0.98]">
+                            <span>Parse & Start Exam</span>
+                            <span class="material-symbols-outlined">play_arrow</span>
+                        </button>
+                    </div>
+
+                    <div class="p-5 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg space-y-1">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-blue-900">Format Guide</h4>
+                        <p class="text-xs text-blue-800 leading-relaxed">Ensure questions start with a number (e.g., "1. ") and options start with letters (e.g., "A. ", "B. "). Use tags like [PASSAGE: 1-5]...[/PASSAGE] to link text to specific questions.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: EXAM WORKSPACE                     -->
+    <!-- ========================================== -->
+    <div id="exam-view" class="w-full h-full flex flex-col bg-white" style="display: none;">
+        <!-- Exam Header -->
+        <header class="w-full z-40 flex justify-between items-center px-8 py-3 bg-white border-b border-gray-200 shrink-0 h-16">
+            <div class="flex items-center gap-8">
+                <span class="text-xl font-black tracking-tighter text-primary">ExamPro</span>
+            </div>
+            <div class="flex items-center gap-5">
+                <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                    <span class="material-symbols-outlined text-gray-400 text-lg">timer</span>
+                    <span id="timerDisplay" class="font-mono font-bold text-lg tracking-widest text-primary">00:00:00</span>
+                </div>
+                <button onclick="clearAndLoadNew()" class="bg-gray-100 text-primary px-5 py-2 rounded-lg text-sm font-bold hover:bg-gray-200 transition-all">
+                    Load New Exam
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Left Sidebar -->
+            <aside class="h-full w-64 bg-white border-r border-gray-200 flex flex-col px-6 py-8 overflow-y-auto custom-scrollbar shrink-0">
+                <section class="mb-10">
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="material-symbols-outlined text-sm text-gray-400">info</span>
+                        <h3 class="text-[11px] tracking-[0.15em] uppercase font-bold text-gray-400">Instructions</h3>
+                    </div>
+                    <ul class="space-y-4 text-gray-600 text-sm leading-relaxed">
+                        <li class="flex gap-2"><span class="text-primary font-bold">•</span> Answer carefully.</li>
+                        <li class="flex gap-2"><span class="text-primary font-bold">•</span> Mark for review if unsure.</li>
+                        <li class="flex gap-2"><span class="text-primary font-bold">•</span> Submit only when finished.</li>
+                    </ul>
+                </section>
+                <section>
+                    <div class="flex items-center gap-2 mb-6">
+                        <span class="material-symbols-outlined text-sm text-gray-400">bookmark</span>
+                        <h3 class="text-[11px] tracking-[0.15em] uppercase font-bold text-gray-400">Legend</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3 text-xs font-semibold text-gray-500">
+                            <div class="w-4 h-4 rounded-full border border-gray-300"></div> Not Visited
+                        </div>
+                        <div class="flex items-center gap-3 text-xs font-semibold text-gray-500">
+                            <div class="w-4 h-4 rounded-full bg-red-50 border border-red-200"></div> Not Answered
+                        </div>
+                        <div class="flex items-center gap-3 text-xs font-semibold text-gray-500">
+                            <div class="w-4 h-4 rounded-full bg-success"></div> Answered
+                        </div>
+                        <div class="flex items-center gap-3 text-xs font-semibold text-gray-500">
+                            <div class="w-4 h-4 rounded-full bg-review"></div> Marked for Review
+                        </div>
+                        <div class="flex items-center gap-3 text-xs font-bold text-primary">
+                            <div class="w-4 h-4 rounded-full border-2 border-primary"></div> Current
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- Main Question Area -->
+            <main class="flex-1 bg-gray-50 p-8 md:p-12 overflow-y-auto custom-scrollbar flex flex-col items-center relative">
+                <div class="max-w-[800px] w-full flex-1 pb-32">
+                    
+                    <!-- Extras (Passages, Visuals) -->
+                    <div id="extraContent" class="mb-8 space-y-4"></div>
+
+                    <!-- Question -->
+                    <div class="mb-10 bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                        <div id="questionLabel" class="inline-block bg-gray-100 px-3 py-1.5 rounded text-[10px] font-black tracking-widest text-gray-500 uppercase mb-6">
+                            Question 1
+                        </div>
+                        <h2 id="questionText" class="text-xl md:text-2xl font-semibold text-primary leading-relaxed">
+                            Loading question...
+                        </h2>
+                    </div>
+
+                    <!-- Options -->
+                    <div id="optionsArea" class="space-y-3">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Bottom Sticky Controls -->
+                <div class="fixed bottom-0 left-64 right-80 bg-white border-t border-gray-200 p-5 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.02)] z-10">
+                    <div class="flex gap-4">
+                        <button onclick="navPrev()" class="flex items-center gap-1 px-4 py-2.5 rounded-lg bg-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-200 transition-all">
+                            <span class="material-symbols-outlined text-lg">chevron_left</span> Prev
+                        </button>
+                        <button onclick="navNext()" class="flex items-center gap-1 px-4 py-2.5 rounded-lg bg-gray-100 text-sm font-bold text-gray-700 hover:bg-gray-200 transition-all">
+                            Next <span class="material-symbols-outlined text-lg">chevron_right</span>
+                        </button>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="clearResponse()" class="px-5 py-2.5 rounded-lg border border-gray-200 text-gray-600 font-bold text-sm hover:bg-gray-50 transition-all">
+                            Clear
+                        </button>
+                        <button onclick="toggleReview()" class="px-5 py-2.5 rounded-lg bg-purple-50 text-review font-bold text-sm hover:bg-purple-100 transition-all border border-purple-100">
+                            Mark Review
+                        </button>
+                        <button onclick="finishExam()" class="px-6 py-2.5 rounded-lg bg-primary text-white font-bold text-sm hover:opacity-90 transition-all shadow-md">
+                            Finish Attempt
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar: Palette -->
+            <aside class="w-80 bg-white border-l border-gray-200 p-6 flex flex-col shrink-0 overflow-y-auto custom-scrollbar relative z-20">
+                <div class="flex items-center gap-2 text-gray-400 mb-6">
+                    <span class="material-symbols-outlined text-lg">grid_view</span>
+                    <h4 class="text-[11px] tracking-[0.15em] uppercase font-bold">Palette</h4>
+                </div>
+                <div id="paletteGrid" class="grid grid-cols-5 gap-2.5 mb-8">
+                    <!-- Rendered by JS -->
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- RESULT OVERLAY                             -->
+    <!-- ========================================== -->
+    <div id="resultOverlay" class="fixed inset-0 bg-black/80 hidden justify-center items-center z-[100] p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h2 class="text-2xl font-bold text-primary">Exam Results Summary</h2>
+                <button onclick="closeResult()" class="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                    <span class="material-symbols-outlined text-gray-500">close</span>
+                </button>
+            </div>
+            <div id="resultContent" class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-2">
+                <!-- Rendered by JS -->
+            </div>
+            <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-4">
+                <button onclick="closeResult()" class="px-6 py-2.5 rounded-lg border border-gray-300 font-bold text-sm hover:bg-gray-100 transition-all">Close</button>
+                <button onclick="clearAndLoadNew()" class="px-6 py-2.5 rounded-lg bg-primary text-white font-bold text-sm hover:opacity-90 transition-all shadow-md">Start New Exam</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC                           -->
+    <!-- ========================================== -->
+    <script>
+
+    // --- State Management ---
+
+    const PROGRESS_KEY = "examProProgress";
+
+    const EXAM_DATA_KEY = "examProData";
+
+
+
+    let questions = [];
+
+    let answers = [];
+
+    let review = [];
+
+    let visited = [];
+
+    let current = 0;
+
+    let timeRemaining = 0;
+
+    let examEndAt = 0;
+
+    let timerInterval = null;
+
+
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+        initApp();
+
+
+
+        // Save state right before the page closes or gets hidden
+
+        window.addEventListener("beforeunload", saveProgress);
+
+        document.addEventListener("visibilitychange", () => {
+
+            if (document.hidden) saveProgress();
+
+        });
+
+    });
+
+
+
+    function initApp() {
+
+        const savedData = localStorage.getItem(EXAM_DATA_KEY);
+
+
+
+        if (savedData) {
+
+            questions = JSON.parse(savedData);
+
+            loadProgress();
+
+            switchView('exam-view');
+
+            renderExam();
+
+            startTimer();
+
+        } else {
+
+            switchView('converter-view');
+
+        }
+
+    }
+
+
+
+    function switchView(viewId) {
+
+        document.getElementById('converter-view').style.display = 'none';
+
+        document.getElementById('exam-view').style.display = 'none';
+
+        document.getElementById(viewId).style.display = 'flex';
+
+    }
+
+
+
+    // --- Parser Logic (From Set 1) ---
+
+    function getRangeItems(text, tag) {
+
+        const regex = new RegExp(`\\[${tag}:\\s*(\\d+)-(\\d+)\\]([\\s\\S]*?)\\[\\/${tag}\\]`, 'gi');
+
+        let items = [], m;
+
+        while ((m = regex.exec(text)) !== null) {
+
+            items.push({
+
+                start: parseInt(m[1], 10),
+
+                end: parseInt(m[2], 10),
+
+                content: m[3].trim().replace(/\r/g, '')
+
+            });
+
+        }
+
+        return items;
+
+    }
+
+
+
+    function isQuestionLine(line) { return /^\d+[\.\)]\s+/.test(line.trim()); }
+
+    function isOptionLine(line) { return /^[A-D]\.\s+/.test(line.trim()); }
+
+
+
+    function parseQuestionBlock(block) {
+
+        const lines = block.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
+
+        if (!lines.length) return null;
+
+
+
+        const qIndex = lines.findIndex(isQuestionLine);
+
+        if (qIndex === -1) return null;
+
+
+
+        const qMatch = lines[qIndex].match(/^(\d+)[\.\)]\s*(.*)$/);
+
+        if (!qMatch) return null;
+
+
+
+        const id = parseInt(qMatch[1], 10);
+
+        const stemLines = [qMatch[2]];
+
+        const options = [];
+
+        let optionMode = false;
+
+
+
+        for (let i = qIndex + 1; i < lines.length; i++) {
+
+            const line = lines[i];
+
+            if (isOptionLine(line)) {
+
+                optionMode = true;
+
+                options.push(line.replace(/^[A-D]\.\s+/, '').trim());
+
+            } else if (!optionMode) {
+
+                stemLines.push(line);
+
+            } else if (options.length) {
+
+                options[options.length - 1] += ' ' + line;
+
+            }
+
+        }
+
+
+
+        return { id, question: stemLines.join(' ').trim(), options };
+
+    }
+
+
+
+    function generateAndStart() {
+
+        const raw = document.getElementById("inputText").value;
+
+        if (!raw.trim()) { alert("Please paste exam content."); return; }
+
+
+
+        const passages = getRangeItems(raw, "PASSAGE");
+
+        const directions = getRangeItems(raw, "DIRECTIONS");
+
+        const visuals = getRangeItems(raw, "VISUAL");
+
+
+
+        const tempQuestions = [];
+
+        const blocks = raw.split(/\n(?=\d+[\.\)])/);
+
+
+
+        blocks.forEach(block => {
+
+            const parsed = parseQuestionBlock(block);
+
+            if (!parsed) return;
+
+
+
+            let options = parsed.options;
+
+            if (options.length < 2) return;
+
+            while (options.length < 4) options.push("N/A");
+
+
+
+            tempQuestions.push({
+
+                id: parsed.id,
+
+                question: parsed.question,
+
+                options,
+
+                passage: passages.find(p => parsed.id >= p.start && parsed.id <= p.end)?.content || null,
+
+                directions: directions.find(d => parsed.id >= d.start && parsed.id <= d.end)?.content || null,
+
+                visual: visuals.find(v => parsed.id >= v.start && parsed.id <= v.end)?.content || null
+
+            });
+
+        });
+
+
+
+        if (tempQuestions.length === 0) {
+
+            alert("Could not detect any valid questions. Please check the formatting.");
+
+            return;
+
+        }
+
+
+
+        questions = tempQuestions;
+
+
+
+        answers = new Array(questions.length).fill(null);
+
+        review = new Array(questions.length).fill(false);
+
+        visited = new Array(questions.length).fill(false);
+
+        current = 0;
+
+
+
+        const mins = parseInt(document.getElementById("examTime").value) || 60;
+
+        timeRemaining = mins * 60;
+
+        examEndAt = Date.now() + (mins * 60 * 1000);
+
+
+
+        localStorage.setItem(EXAM_DATA_KEY, JSON.stringify(questions));
+
+        saveProgress();
+
+
+
+        alert(`✅ Successfully parsed ${questions.length} questions! Starting Exam.`);
+
+
+
+        switchView('exam-view');
+
+        renderExam();
+
+        startTimer();
+
+    }
+
+
+
+    // --- Core Exam Logic ---
+
+    function saveProgress() {
+
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+
+            answers,
+
+            review,
+
+            visited,
+
+            current,
+
+            examEndAt,
+
+            // stored as a fallback, but the real source of truth is examEndAt
+
+            timeLeft: Math.max(0, Math.ceil((examEndAt - Date.now()) / 1000))
+
+        }));
+
+    }
+
+
+
+    function loadProgress() {
+
+        const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {};
+
+
+
+        answers = Array.isArray(saved.answers) && saved.answers.length === questions.length
+
+            ? saved.answers
+
+            : new Array(questions.length).fill(null);
+
+
+
+        review = Array.isArray(saved.review) && saved.review.length === questions.length
+
+            ? saved.review
+
+            : new Array(questions.length).fill(false);
+
+
+
+        visited = Array.isArray(saved.visited) && saved.visited.length === questions.length
+
+            ? saved.visited
+
+            : new Array(questions.length).fill(false);
+
+
+
+        current = Number.isInteger(saved.current) && saved.current >= 0 && saved.current < questions.length
+
+            ? saved.current
+
+            : 0;
+
+
+
+        if (typeof saved.examEndAt === "number" && saved.examEndAt > 0) {
+
+            examEndAt = saved.examEndAt;
+
+        } else {
+
+            const fallbackSeconds = typeof saved.timeLeft === "number" ? saved.timeLeft : 3600;
+
+            examEndAt = Date.now() + (fallbackSeconds * 1000);
+
+        }
+
+
+
+        timeRemaining = Math.max(0, Math.ceil((examEndAt - Date.now()) / 1000));
+
+    }
+
+
+
+    function escapeHtml(text) {
+
+        const div = document.createElement("div");
+
+        div.textContent = text == null ? "" : String(text);
+
+        return div.innerHTML;
+
+    }
+
+
+
+    function renderText(text) { return escapeHtml(text).replace(/\n/g, "<br>"); }
+
+
+
+    function renderVisualTable(text) {
+
+        const lines = String(text || "").replace(/\r/g, "").split("\n").map(l => l.trim()).filter(Boolean);
+
+        if (!lines.length) return "";
+
+        let html = "<table class='visual-table'>";
+
+        lines.forEach(line => {
+
+            const cells = line.split("|").map(c => c.trim());
+
+            html += "<tr>";
+
+            cells.forEach(cell => { html += `<td>${renderText(cell)}</td>`; });
+
+            html += "</tr>";
+
+        });
+
+        html += "</table>";
+
+        return html;
+
+    }
+
+
+
+    function renderExam() {
+
+        visited[current] = true;
+
+        const q = questions[current];
+
+
+
+        let extraHTML = "";
+
+        if (q.directions) extraHTML += `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-sm text-blue-900"><strong class="uppercase text-xs tracking-widest block mb-1">Directions:</strong>${renderText(q.directions)}</div>`;
+
+        if (q.passage) extraHTML += `<div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm text-gray-700 leading-relaxed"><strong class="uppercase text-xs tracking-widest block mb-2 text-gray-500">Passage:</strong>${renderText(q.passage)}</div>`;
+
+        if (q.visual) extraHTML += `<div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm overflow-x-auto"><strong class="uppercase text-xs tracking-widest block mb-2 text-gray-500">Reference:</strong>${renderVisualTable(q.visual)}</div>`;
+
+
+
+        document.getElementById("extraContent").innerHTML = extraHTML;
+
+        document.getElementById("questionLabel").innerText = `Question ${current + 1} of ${questions.length}`;
+
+        document.getElementById("questionText").innerHTML = renderText(q.question);
+
+
+
+        const optArea = document.getElementById("optionsArea");
+
+        optArea.innerHTML = "";
+
+        q.options.forEach((opt, i) => {
+
+            const isSelected = answers[current] === i;
+
+
+
+            const label = document.createElement("label");
+
+            label.className = `option-card group flex items-center p-5 rounded-xl border border-gray-200 cursor-pointer ${isSelected ? 'active' : 'hover:border-gray-300 hover:bg-gray-50'}`;
+
+
+
+            const input = document.createElement("input");
+
+            input.type = "radio";
+
+            input.name = "exam-option";
+
+            input.value = i;
+
+            if (isSelected) input.checked = true;
+
+
+
+            const textSpan = document.createElement("span");
+
+            textSpan.className = `text-lg transition-colors ${isSelected ? 'font-bold text-primary' : 'text-gray-700'}`;
+
+            textSpan.innerHTML = `<strong class="mr-2">${String.fromCharCode(65 + i)}.</strong> ${renderText(opt)}`;
+
+
+
+            label.appendChild(input);
+
+            label.appendChild(textSpan);
+
+
+
+            label.onclick = () => {
+
+                answers[current] = i;
+
+                saveProgress();
+
+                renderExam();
+
+            };
+
+
+
+            optArea.appendChild(label);
+
+        });
+
+
+
+        renderPalette();
+
+        if (window.MathJax) MathJax.typesetPromise();
+
+        saveProgress();
+
+    }
+
+
+
+    function renderPalette() {
+
+        const grid = document.getElementById("paletteGrid");
+
+        grid.innerHTML = "";
+
+
+
+        questions.forEach((_, i) => {
+
+            const btn = document.createElement("button");
+
+            btn.className = "h-11 w-11 flex items-center justify-center rounded-lg font-bold text-[13px] transition-all hover:-translate-y-0.5 ";
+
+
+
+            if (i === current) btn.classList.add("q-current");
+
+
+
+            if (!visited[i]) {
+
+                btn.classList.add("q-not-visited");
+
+            } else if (answers[i] !== null) {
+
+                btn.classList.add("q-answered");
+
+            } else {
+
+                btn.classList.add("q-not-answered");
+
+            }
+
+
+
+            if (review[i]) {
+
+                btn.className = btn.className.replace(/q-(not-visited|answered|not-answered)/g, 'q-review');
+
+            }
+
+
+
+            btn.innerText = i + 1;
+
+            btn.onclick = () => {
+
+                current = i;
+
+                saveProgress();
+
+                renderExam();
+
+            };
+
+
+
+            grid.appendChild(btn);
+
+        });
+
+    }
+
+
+
+    function navNext() {
+
+        if (current < questions.length - 1) { current++; renderExam(); }
+
+    }
+
+
+
+    function navPrev() {
+
+        if (current > 0) { current--; renderExam(); }
+
+    }
+
+
+
+    function toggleReview() {
+
+        review[current] = !review[current];
+
+        saveProgress();
+
+        renderPalette();
+
+    }
+
+
+
+    function clearResponse() {
+
+        answers[current] = null;
+
+        saveProgress();
+
+        renderExam();
+
+    }
+
+
+
+    function finishExam() {
+
+        if(!confirm("Are you sure you want to submit your exam?")) return;
+
+
+
+        let resultHTML = "";
+
+        let answeredCount = answers.filter(a => a !== null).length;
+
+
+
+        resultHTML += `<div class="mb-6 p-4 bg-gray-100 rounded-lg text-center">
+
+            <span class="text-3xl font-black text-primary">${answeredCount} / ${questions.length}</span>
+
+            <p class="text-sm text-gray-500 font-bold uppercase tracking-widest mt-1">Questions Attempted</p>
+
+        </div>`;
+
+
+
+        questions.forEach((q, i) => {
+
+            const ansStr = answers[i] !== null ? String.fromCharCode(65 + answers[i]) : "Not Answered";
+
+            const isAns = answers[i] !== null;
+
+            resultHTML += `
+
+                <div class="p-4 bg-white border ${isAns ? 'border-green-200' : 'border-red-200'} rounded-lg flex gap-4 items-start">
+
+                    <div class="flex-shrink-0 w-8 h-8 ${isAns ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} rounded-full flex items-center justify-center font-bold text-sm">
+
+                        ${i+1}
+
+                    </div>
+
+                    <div>
+
+                        <p class="text-sm text-gray-800 mb-1">${renderText(q.question)}</p>
+
+                        <p class="text-xs font-bold ${isAns ? 'text-green-600' : 'text-red-500'}">Selected: ${ansStr}</p>
+
+                    </div>
+
+                </div>`;
+
+        });
+
+
+
+        document.getElementById("resultContent").innerHTML = resultHTML;
+
+        document.getElementById("resultOverlay").style.display = "flex";
+
+        clearInterval(timerInterval);
+
+        saveProgress();
+
+    }
+
+
+
+    function closeResult() {
+
+        document.getElementById("resultOverlay").style.display = "none";
+
+    }
+
+
+
+    function clearAndLoadNew() {
+
+        if(confirm("This will erase current exam data. Proceed?")) {
+
+            localStorage.removeItem(EXAM_DATA_KEY);
+
+            localStorage.removeItem(PROGRESS_KEY);
+
+            clearInterval(timerInterval);
+
+            document.getElementById("inputText").value = "";
+
+            examEndAt = 0;
+
+            switchView('converter-view');
+
+        }
+
+    }
+
+
+
+    // --- Timer logic ---
+
+    function startTimer() {
+
+        if (timerInterval) clearInterval(timerInterval);
+
+
+
+        // Always recompute from the saved end time
+
+        timeRemaining = Math.max(0, Math.ceil((examEndAt - Date.now()) / 1000));
+
+        updateTimerDisplay();
+
+
+
+        timerInterval = setInterval(() => {
+
+            timeRemaining = Math.max(0, Math.ceil((examEndAt - Date.now()) / 1000));
+
+            updateTimerDisplay();
+
+            saveProgress();
+
+
+
+            if (timeRemaining <= 0) {
+
+                clearInterval(timerInterval);
+
+                alert("Time is up! Exam auto-submitted.");
+
+                finishExam();
+
+            }
+
+        }, 1000);
+
+    }
+
+
+
+    function updateTimerDisplay() {
+
+        const h = Math.floor(timeRemaining / 3600);
+
+        const m = Math.floor((timeRemaining % 3600) / 60);
+
+        const s = timeRemaining % 60;
+
+        document.getElementById("timerDisplay").innerText =
+
+            `${h > 0 ? String(h).padStart(2, '0') + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+    }
+
+</script>
+</body>
+</html>
